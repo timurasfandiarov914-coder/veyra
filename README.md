@@ -17,29 +17,29 @@ Veyra is an experimental Android launcher for the Google Pixel 6 Pro, with a lay
 
 Kotlin, Jetpack Compose, Material 3, Android SDK 35 (minimum API 26), Gradle, and GitHub Actions.
 
-## One-time setup for update-compatible APKs
+## APK delivery and updates
 
-Android only installs an APK over an existing app when both builds use the same application ID and signing certificate. The CI workflow uses a persistent debug signing key stored as a GitHub Actions secret, not as a repository file.
+The GitHub Actions workflow builds a CI input artifact named **Veyra-CI-input**. It is signed with the runner's temporary debug key and is not the file to install for long-term in-place updates.
 
-1. Open **Settings → Secrets and variables → Actions** in this repository.
-2. Select **New repository secret**.
-3. Name: `VEYRA_DEBUG_KEYSTORE_BASE64`.
-4. Value: paste the complete contents of the generated `veyra_debug_keystore_base64.txt` file supplied separately.
-5. Save the secret, then open **Actions → Android CI** and rerun the latest workflow.
+The installable file shared for device testing is named **Veyra.apk** and is re-signed with the stable Veyra development keystore stored outside the repository. Every delivered APK must keep:
 
-Do not commit the keystore or the Base64 text into the repository. The secret must remain the same for all future builds; replacing it changes the signing identity and prevents in-place updates.
+- Application ID: `com.veyra.launcher`
+- A signing certificate from the same persistent Veyra keystore
+- A strictly increasing Android versionCode
 
-## Downloading the APK
+With these preserved, Android can install Veyra.apk as an update over the prior delivered version. Do not delete the app before updating unless Android explicitly reports that the signatures differ. Never commit the signing keystore or its Base64 contents to this repository.
 
-After setup, each successful workflow uploads an artifact named **Veyra-APK** containing a file named **Veyra.apk**. In this collaboration, the APK is also provided directly as a downloadable file. Future APKs will keep the same filename and signing identity, so Android can offer **Update** over the installed version.
+If the persistent keystore is lost, future builds cannot update an installed copy signed with it; a reinstall will be required. Keep the keystore backup private and secure.
+
+## Downloading the CI build
 
 1. Open **Actions → Android CI**.
 2. Select the successful run.
-3. Download the **Veyra-APK** artifact if you need the GitHub copy.
-4. Install `Veyra.apk` on the device.
+3. Download **Veyra-CI-input** to inspect the raw CI build.
+4. For device updates, use the separately delivered **Veyra.apk** signed with Veyra's stable development key.
 
 ## Development status
 
-The glass treatment currently uses translucent fills, layered gradients, and subtle borders; true background blur is not implemented yet. Third-party Android widgets, persistent customization, accessibility verification, and performance profiling remain future milestones.
+The current glass treatment uses translucent fills, layered gradients, and subtle borders; true background blur is not implemented yet. Third-party Android widgets, persistent customization, accessibility verification, and performance profiling remain future milestones.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) and [ROADMAP.md](ROADMAP.md).
