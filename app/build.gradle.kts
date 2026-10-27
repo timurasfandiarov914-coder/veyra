@@ -4,6 +4,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val ciVersionCode = providers.gradleProperty("versionCode").orElse("1").get().toInt()
+
 android {
     namespace = "com.veyra.launcher"
     compileSdk = 35
@@ -12,8 +14,8 @@ android {
         applicationId = "com.veyra.launcher"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = ciVersionCode
+        versionName = "0.1.$ciVersionCode"
     }
 
     buildFeatures {
