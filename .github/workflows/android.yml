@@ -50,7 +50,7 @@ jobs:
 
       - name: Assemble debug APK
         if: steps.signing.outputs.ready == 'true'
-        run: gradle --no-daemon --stacktrace assembleDebug
+        run: gradle --no-daemon --stacktrace -PversionCode="$GITHUB_RUN_NUMBER" assembleDebug
 
       - name: Prepare fixed-name APK
         if: steps.signing.outputs.ready == 'true'
