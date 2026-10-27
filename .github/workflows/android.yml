@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Veyra APK
+    name: Build Veyra APK input
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -31,42 +31,16 @@ jobs:
         with:
           gradle-version: "8.11.1"
 
-      - name: Restore stable debug signing key
-        id: signing
-        env:
-          VEYRA_DEBUG_KEYSTORE_BASE64: ${{ secrets.VEYRA_DEBUG_KEYSTORE_BASE64 }}
-        shell: bash
-        run: |
-          if [ -z "$VEYRA_DEBUG_KEYSTORE_BASE64" ]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::No stable signing key configured. Add repository Actions secret VEYRA_DEBUG_KEYSTORE_BASE64 to create update-compatible APKs."
-            exit 0
-          fi
-
-          mkdir -p "$HOME/.android"
-          printf '%s' "$VEYRA_DEBUG_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
-          chmod 600 "$HOME/.android/debug.keystore"
-          echo "ready=true" >> "$GITHUB_OUTPUT"
-
       - name: Assemble debug APK
-        if: steps.signing.outputs.ready == 'true'
         run: gradle --no-daemon --stacktrace -PversionCode="$GITHUB_RUN_NUMBER" assembleDebug
 
-      - name: Prepare fixed-name APK
-        if: steps.signing.outputs.ready == 'true'
-        run: cp app/build/outputs/apk/debug/app-debug.apk Veyra.apk
+      - name: Prepare CI build input
+        run: cp app/build/outputs/apk/debug/app-debug.apk Veyra-CI-input.apk
 
-      - name: Upload APK artifact
-        if: steps.signing.outputs.ready == 'true'
+      - name: Upload CI build input
         uses: actions/upload-artifact@v4
         with:
-          name: Veyra-APK
-          path: Veyra.apk
+          name: Veyra-CI-input
+          path: Veyra-CI-input.apk
           if-no-files-found: error
           retention-days: 14
-
-      - name: Report required setup
-        if: steps.signing.outputs.ready != 'true'
-        run: |
-          echo "Build skipped to protect update compatibility."
-          echo "Add repository secret VEYRA_DEBUG_KEYSTORE_BASE64 and rerun this workflow."
